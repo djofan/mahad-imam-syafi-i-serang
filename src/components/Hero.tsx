@@ -115,7 +115,7 @@ export const Hero: React.FC<HeroProps> = ({
               {/* Campus Visual */}
               <div className="relative aspect-4/3 w-full overflow-hidden bg-stone-900">
                 <img
-                  src="/src/assets/images/pesantren_campus_view_1792804369593.jpg"
+                  src="/images/pesantren_campus.jpg"
                   alt="Lansekap Kampus Ma'had Imam Syafi'i Serang"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                   referrerPolicy="no-referrer"
