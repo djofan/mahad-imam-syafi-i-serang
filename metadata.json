@@ -1,0 +1,8 @@
+{
+  "name": "Ma'had Imam Syafi'i Serang",
+  "description": "Profil resmi Ma'had Imam Syafi'i Serang Banten - Pesantren Islam bermanhaj Salafush Shalih dengan kurikulum Tahfidzul Qur'an, Dirosah Islamiyyah, Pendaftaran Santri Baru (PSB Online), dan Galeri Kegiatan Santri.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
