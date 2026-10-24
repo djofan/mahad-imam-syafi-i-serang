@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import { EducationLevel, RegistrationFormData, RegisteredStudent, RegistrationTrack } from '../types';
 import { PROGRAMS, MOCK_STUDENTS_FOR_VERIFICATION, MAHAD_INFO } from '../data/mahadData';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface RegistrationPortalProps {
   initialLevel?: EducationLevel;
@@ -98,8 +101,8 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
       if (!formData.parentWhatsApp.trim() || formData.parentWhatsApp.length < 9) {
         errors.parentWhatsApp = 'Nomor WhatsApp aktif wajib diisi untuk info seleksi';
       }
-      if (!formData.homeAddress.trim()) errors.homeAddress = 'Alamat domisili wajib diisi';
-      if (!formData.city.trim()) errors.city = 'Kota/Kabupaten wajib diisi';
+      if (!formData.homeAddress.trim()) errors.homeAddress = 'Alamat tempat tinggal wajib diisi';
+      if (!formData.city.trim()) errors.city = 'Kota domisili wajib diisi';
     }
 
     setFormErrors(errors);
@@ -118,30 +121,35 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
 
   const handleSubmitRegistration = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(currentStep)) return;
+    if (!validateStep(3)) {
+      setCurrentStep(3);
+      return;
+    }
 
-    // Generate formal Registration ID
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const newRegId = `PSB-MIS-2025-${randomNum}`;
-    const today = new Date().toISOString().split('T')[0];
 
     const newStudent: RegisteredStudent = {
       ...formData,
       registrationId: newRegId,
-      registeredAt: today,
       status: 'Terverifikasi',
-      testDate: 'Gelombang I: 22 Februari 2025, 08.00 WIB',
-      testLocation: "Ruang Penguji Lt. 2 - Ma'had Imam Syafi'i Serang",
-      interviewer: "Ustadz Dewan Penguji PSB",
+      registeredAt: new Date().toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }),
+      testDate: 'Sabtu, 24 Mei 2025 (Pukul 08.00 WIB)',
+      testLocation: "Aula Utama Kampus Ma'had Imam Syafi'i Serang",
+      previousSchoolCity: formData.city,
     };
 
-    setAllRegisteredStudents((prev) => [newStudent, ...prev]);
+    setAllRegisteredStudents([newStudent, ...allRegisteredStudents]);
     setRegisteredCard(newStudent);
-    setCurrentStep(5); // Show success proof card
+    setCurrentStep(5);
   };
 
-  const handleSearchStatus = (queryToUse?: string) => {
-    const q = (queryToUse || searchQuery).trim().toLowerCase();
+  const handleSearchStatus = (customQuery?: string) => {
+    const q = (customQuery || searchQuery).trim().toLowerCase();
     if (!q) {
       setSearchError('Silakan masukkan nomor pendaftaran atau nomor WhatsApp');
       return;
@@ -168,48 +176,45 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
   };
 
   return (
-    <section id="psb-portal" className="py-16 sm:py-24 bg-stone-50 border-b border-stone-200">
+    <section id="psb-portal" className="py-16 sm:py-24 bg-[#FFF8E6] border-b border-[#EADBBA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="text-xs font-semibold tracking-wider uppercase text-emerald-800 mb-2">
+          <Badge variant="default" className="mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[#1C1C1C]" />
             Penerimaan Santri Baru (PSB) Online
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-stone-900 tracking-tight">
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#1C1C1C] tracking-tight">
             Portal Pendaftaran Santri Baru TA 2025/2026
           </h2>
-          <p className="mt-3 text-stone-600 text-sm sm:text-base leading-relaxed">
+          <p className="mt-3 text-stone-700 text-sm sm:text-base leading-relaxed">
             Daftarkan putra Anda untuk menjadi bagian dari generasi penghafal Al-Qur'an dan penuntut ilmu syar'i bermanhaj Salafush Shalih di Ma'had Imam Syafi'i Serang.
           </p>
 
           {/* Tab Navigation: Form vs Cek Status */}
-          <div className="mt-8 inline-flex p-1 bg-stone-200/80 rounded-xl border border-stone-300/80">
-            <button
+          <div className="mt-8 inline-flex p-1.5 bg-white rounded-2xl border border-[#EADBBA] shadow-xs">
+            <Button
+              variant={activeTab === 'form' ? "dark" : "ghost"}
+              size="sm"
               onClick={() => {
                 setActiveTab('form');
                 if (currentStep === 5) setCurrentStep(1);
               }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === 'form'
-                  ? 'bg-emerald-800 text-white shadow-xs'
-                  : 'text-stone-700 hover:text-stone-950'
-              }`}
+              className="text-xs sm:text-sm font-bold gap-2"
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4 text-[#F5B700]" />
               <span>Formulir Pendaftaran Baru</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              variant={activeTab === 'status' ? "dark" : "ghost"}
+              size="sm"
               onClick={() => setActiveTab('status')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === 'status'
-                  ? 'bg-emerald-800 text-white shadow-xs'
-                  : 'text-stone-700 hover:text-stone-950'
-              }`}
+              className="text-xs sm:text-sm font-bold gap-2"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-4 h-4 text-[#F5B700]" />
               <span>Cek Status / Hasil Seleksi</span>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -219,15 +224,15 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
             
             {/* Step 5: SUCCESS PROOF CARD */}
             {currentStep === 5 && registeredCard && (
-              <div className="bg-white rounded-2xl border-2 border-emerald-700 p-6 sm:p-10 shadow-lg animate-in fade-in zoom-in-95">
-                <div className="text-center pb-6 border-b border-stone-200">
-                  <div className="w-14 h-14 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-8 h-8" />
+              <div className="bg-white rounded-2xl border-2 border-[#F5B700] p-6 sm:p-10 shadow-xl animate-in fade-in zoom-in-95">
+                <div className="text-center pb-6 border-b border-[#EADBBA]">
+                  <div className="w-16 h-16 bg-[#FFF3CC] text-[#1C1C1C] border border-[#FCD566] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+                    <CheckCircle className="w-9 h-9 text-[#F5B700]" />
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                  <Badge variant="default" className="text-xs font-bold mb-2">
                     Pendaftaran Berhasil Dikirim
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 mt-1">
+                  </Badge>
+                  <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#1C1C1C] mt-1">
                     Kartu Bukti Pendaftaran Santri Baru
                   </h3>
                   <p className="text-xs sm:text-sm text-stone-600 mt-1">
@@ -236,23 +241,23 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                 </div>
 
                 {/* Printable Slip Content */}
-                <div className="mt-8 bg-stone-50 p-6 rounded-xl border border-stone-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="mt-8 bg-[#FFF8E6] p-6 rounded-2xl border border-[#EADBBA] grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="text-xs text-stone-500 font-medium">Nomor Pendaftaran Resmi:</div>
-                    <div className="font-mono text-xl sm:text-2xl font-bold text-emerald-800 tracking-wider">
+                    <div className="text-xs text-stone-500 font-semibold uppercase tracking-wider">Nomor Pendaftaran Resmi:</div>
+                    <div className="font-mono text-xl sm:text-2xl font-bold text-[#1C1C1C] tracking-wider mt-1">
                       {registeredCard.registrationId}
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-stone-500 font-medium">Status Pendaftaran:</div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-md text-xs font-bold mt-1">
-                      <CheckCircle className="w-3.5 h-3.5" />
+                    <div className="text-xs text-stone-500 font-semibold uppercase tracking-wider">Status Pendaftaran:</div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1C1C1C] text-[#F5B700] rounded-lg text-xs font-bold mt-1 shadow-2xs">
+                      <CheckCircle className="w-3.5 h-3.5 text-[#F5B700]" />
                       {registeredCard.status}
                     </div>
                   </div>
 
-                  <div className="space-y-1 text-xs sm:text-sm text-stone-700">
+                  <div className="space-y-1.5 text-xs sm:text-sm text-stone-800">
                     <div><strong>Nama Lengkap:</strong> {registeredCard.fullName}</div>
                     <div><strong>Jenjang Dipilih:</strong> {PROGRAMS.find(p => p.id === registeredCard.level)?.name}</div>
                     <div><strong>Jalur:</strong> {registeredCard.track.toUpperCase()}</div>
@@ -260,7 +265,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                     <div><strong>Hafalan Awal:</strong> {registeredCard.currentJuzMemorized} Juz</div>
                   </div>
 
-                  <div className="space-y-1 text-xs sm:text-sm text-stone-700">
+                  <div className="space-y-1.5 text-xs sm:text-sm text-stone-800">
                     <div><strong>Nama Orang Tua / Wali:</strong> {registeredCard.fatherName}</div>
                     <div><strong>WhatsApp Konfirmasi:</strong> {registeredCard.parentWhatsApp}</div>
                     <div><strong>Domisili:</strong> {registeredCard.city}, {registeredCard.province}</div>
@@ -269,35 +274,43 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                 </div>
 
                 {/* Next Instructions Box */}
-                <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs sm:text-sm text-amber-900">
-                  <h4 className="font-bold flex items-center gap-2 mb-1">
-                    <Clock className="w-4 h-4 text-amber-700" />
+                <div className="mt-6 p-5 bg-[#FFFAEE] rounded-2xl border-2 border-[#F5B700] text-xs sm:text-sm text-[#1C1C1C] shadow-2xs">
+                  <h4 className="font-bold flex items-center gap-2 mb-1.5 text-base">
+                    <Clock className="w-4 h-4 text-[#F5B700]" />
                     Jadwal Tes Seleksi Calon Santri:
                   </h4>
-                  <p>
-                    {registeredCard.testDate} bertempat di <strong>{registeredCard.testLocation}</strong>. Harap hadir 30 menit sebelum tes dengan membawa fotokopi berkas dan berpakaian koko/gamis putih sopan.
+                  <p className="text-stone-700 leading-relaxed">
+                    {registeredCard.testDate} bertempat di <strong className="text-[#1C1C1C]">{registeredCard.testLocation}</strong>. Harap hadir 30 menit sebelum tes dengan membawa fotokopi berkas dan berpakaian koko/gamis putih sopan.
                   </p>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-8 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-stone-200">
+                <div className="mt-8 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#EADBBA]">
                   <div className="flex items-center gap-3">
-                    <button
+                    <Button
+                      variant="dark"
+                      size="default"
                       onClick={handlePrintCard}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                      className="text-xs sm:text-sm font-bold gap-2"
                     >
-                      <Printer className="w-4 h-4" />
+                      <Printer className="w-4 h-4 text-[#F5B700]" />
                       <span>Cetak Bukti Pendaftaran</span>
-                    </button>
-                    <a
-                      href={`https://wa.me/6281288776650?text=Assalamu%27alaikum%20Panitia%20PSB%20Ma%27had%20Imam%20Syafi%27i%20Serang,%20saya%20sudah%20mendaftar%20dengan%20No%20${registeredCard.registrationId}%20atas%20nama%20${encodeURIComponent(registeredCard.fullName)}.`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="default"
+                      asChild
+                      className="text-xs sm:text-sm font-bold gap-2 shadow-md hover:shadow-lg"
                     >
-                      <Phone className="w-4 h-4" />
-                      <span>Konfirmasi via WhatsApp Panitia</span>
-                    </a>
+                      <a
+                        href={`https://wa.me/6281288776650?text=Assalamu%27alaikum%20Panitia%20PSB%20Ma%27had%20Imam%20Syafi%27i%20Serang,%20saya%20sudah%20mendaftar%20dengan%20No%20${registeredCard.registrationId}%20atas%20nama%20${encodeURIComponent(registeredCard.fullName)}.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Phone className="w-4 h-4 text-[#1C1C1C]" />
+                        <span>Konfirmasi via WhatsApp Panitia</span>
+                      </a>
+                    </Button>
                   </div>
 
                   <button
@@ -315,7 +328,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                         notes: '',
                       });
                     }}
-                    className="text-xs text-stone-500 hover:text-stone-800 font-medium underline"
+                    className="text-xs text-stone-600 hover:text-[#1C1C1C] font-bold underline cursor-pointer"
                   >
                     Daftarkan Santri Lainnya
                   </button>
@@ -325,10 +338,10 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
 
             {/* Steps 1-4 FORM WIZARD */}
             {currentStep < 5 && (
-              <div className="bg-white rounded-2xl border border-stone-200 p-6 sm:p-10 shadow-xs">
+              <Card className="bg-white border-[#EADBBA] p-6 sm:p-10 shadow-md rounded-2xl">
                 
                 {/* Stepper Indicator */}
-                <div className="mb-8 pb-6 border-b border-stone-200">
+                <div className="mb-8 pb-6 border-b border-[#EADBBA]">
                   <div className="flex items-center justify-between max-w-2xl mx-auto">
                     {[
                       { num: 1, label: 'Program' },
@@ -336,19 +349,19 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                       { num: 3, label: 'Orang Tua' },
                       { num: 4, label: 'Konfirmasi' },
                     ].map((step) => (
-                      <div key={step.num} className="flex items-center gap-2">
+                      <div key={step.num} className="flex items-center gap-2.5">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                             currentStep === step.num
-                              ? 'bg-emerald-800 text-white'
+                              ? 'bg-[#F5B700] text-[#1C1C1C] shadow-md scale-105 border border-[#DF9F00]'
                               : currentStep > step.num
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-stone-200 text-stone-500'
+                              ? 'bg-[#1C1C1C] text-[#FFF8E6]'
+                              : 'bg-[#FFF8E6] text-stone-500 border border-[#EADBBA]'
                           }`}
                         >
-                          {currentStep > step.num ? <CheckCircle className="w-4 h-4" /> : step.num}
+                          {currentStep > step.num ? <CheckCircle className="w-4 h-4 text-[#F5B700]" /> : step.num}
                         </div>
-                        <span className="hidden sm:inline text-xs font-medium text-stone-700">
+                        <span className="hidden sm:inline text-xs font-bold text-stone-800">
                           {step.label}
                         </span>
                       </div>
@@ -362,7 +375,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   {currentStep === 1 && (
                     <div className="space-y-6">
                       <div>
-                        <h3 className="font-serif font-bold text-lg sm:text-xl text-stone-900 mb-1">
+                        <h3 className="font-serif font-bold text-lg sm:text-xl text-[#1C1C1C] mb-1">
                           Pilih Jenjang & Jalur Pendaftaran
                         </h3>
                         <p className="text-xs sm:text-sm text-stone-600">
@@ -374,10 +387,10 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                         {PROGRAMS.map((prog) => (
                           <label
                             key={prog.id}
-                            className={`p-4 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
+                            className={`p-5 rounded-2xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
                               formData.level === prog.id
-                                ? 'border-emerald-700 bg-emerald-50/50'
-                                : 'border-stone-200 hover:border-stone-300 bg-white'
+                                ? 'border-[#F5B700] bg-[#FFF8E6] shadow-sm'
+                                : 'border-[#EADBBA] hover:border-stone-400 bg-[#FFFDF8]'
                             }`}
                           >
                             <div>
@@ -388,29 +401,29 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                                   value={prog.id}
                                   checked={formData.level === prog.id}
                                   onChange={() => setFormData({ ...formData, level: prog.id })}
-                                  className="text-emerald-700 focus:ring-emerald-700"
+                                  className="accent-[#F5B700] w-4 h-4"
                                 />
-                                <span className="text-2xs uppercase tracking-wider font-bold text-emerald-800">
+                                <Badge variant="dark" className="text-2xs font-bold">
                                   {prog.formalEquivalent.split(' (')[0]}
-                                </span>
+                                </Badge>
                               </div>
-                              <div className="font-serif font-bold text-stone-900 text-sm sm:text-base">
+                              <div className="font-serif font-bold text-[#1C1C1C] text-sm sm:text-base">
                                 {prog.name}
                               </div>
                               <p className="text-xs text-stone-600 mt-1 line-clamp-2">
                                 {prog.description}
                               </p>
                             </div>
-                            <div className="mt-3 pt-2 border-t border-stone-100 text-xs text-stone-500">
-                              Target: <strong className="text-stone-800">{prog.targetHafalan.split(' (')[0]}</strong>
+                            <div className="mt-3 pt-2 border-t border-[#EADBBA] text-xs text-stone-600">
+                              Target: <strong className="text-[#1C1C1C]">{prog.targetHafalan.split(' (')[0]}</strong>
                             </div>
                           </label>
                         ))}
                       </div>
 
                       {/* Jalur Pendaftaran */}
-                      <div className="pt-4 border-t border-stone-200">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-2">
+                      <div className="pt-4 border-t border-[#EADBBA]">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#1C1C1C] mb-2.5">
                           Jalur Masuk Seleksi:
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -421,10 +434,10 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                           ].map((track) => (
                             <label
                               key={track.id}
-                              className={`p-3 rounded-lg border text-xs cursor-pointer ${
+                              className={`p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${
                                 formData.track === track.id
-                                  ? 'border-emerald-700 bg-emerald-50 text-emerald-950 font-semibold'
-                                  : 'border-stone-200 hover:border-stone-300 text-stone-700'
+                                  ? 'border-2 border-[#F5B700] bg-[#FFF8E6] text-[#1C1C1C] font-bold shadow-2xs'
+                                  : 'border-[#EADBBA] hover:border-stone-400 text-stone-700 bg-[#FFFDF8]'
                               }`}
                             >
                               <div className="flex items-center gap-2 mb-1">
@@ -434,11 +447,11 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                                   value={track.id}
                                   checked={formData.track === track.id}
                                   onChange={() => setFormData({ ...formData, track: track.id as RegistrationTrack })}
-                                  className="text-emerald-700 focus:ring-emerald-700"
+                                  className="accent-[#F5B700]"
                                 />
                                 <span>{track.label}</span>
                               </div>
-                              <span className="text-stone-500 text-2xs block pl-5">{track.desc}</span>
+                              <span className="text-stone-500 text-2xs block pl-5 font-normal">{track.desc}</span>
                             </label>
                           ))}
                         </div>
@@ -451,7 +464,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   {currentStep === 2 && (
                     <div className="space-y-4">
                       <div>
-                        <h3 className="font-serif font-bold text-lg sm:text-xl text-stone-900 mb-1">
+                        <h3 className="font-serif font-bold text-lg sm:text-xl text-[#1C1C1C] mb-1">
                           Biodata Calon Santri Putra
                         </h3>
                         <p className="text-xs sm:text-sm text-stone-600">
@@ -461,7 +474,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Nama Lengkap Santri (Sesuai Akta Kelahiran) *
                           </label>
                           <input
@@ -470,15 +483,15 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: Muhammad Fatih Al-Bantani"
                             value={formData.fullName}
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] focus:ring-2 focus:ring-[#F5B700]/20 text-sm text-[#1C1C1C]"
                           />
                           {formErrors.fullName && (
-                            <span className="text-2xs text-red-600 mt-1 block">{formErrors.fullName}</span>
+                            <span className="text-2xs text-rose-600 mt-1 block font-semibold">{formErrors.fullName}</span>
                           )}
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Nama Panggilan
                           </label>
                           <input
@@ -486,24 +499,24 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: Fatih"
                             value={formData.nickname}
                             onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Jenis Kelamin
                           </label>
                           <input
                             type="text"
                             disabled
                             value="Laki-laki (Ikhwan)"
-                            className="w-full px-3.5 py-2.5 rounded-lg bg-stone-100 border border-stone-300 text-stone-600 text-sm cursor-not-allowed font-medium"
+                            className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8E6] border border-[#EADBBA] text-stone-800 text-sm cursor-not-allowed font-bold"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Nomor Induk Kependudukan (NIK Santri) *
                           </label>
                           <input
@@ -512,15 +525,15 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="16 Digit NIK di Kartu Keluarga"
                             value={formData.nik}
                             onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                           {formErrors.nik && (
-                            <span className="text-2xs text-red-600 mt-1 block">{formErrors.nik}</span>
+                            <span className="text-2xs text-rose-600 mt-1 block font-semibold">{formErrors.nik}</span>
                           )}
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             NISN (Bila ada dari sekolah asal)
                           </label>
                           <input
@@ -528,12 +541,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="10 Digit NISN"
                             value={formData.nisn}
                             onChange={(e) => setFormData({ ...formData, nisn: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Tempat Lahir *
                           </label>
                           <input
@@ -542,12 +555,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: Serang / Cilegon / Jakarta"
                             value={formData.birthPlace}
                             onChange={(e) => setFormData({ ...formData, birthPlace: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Tanggal Lahir *
                           </label>
                           <input
@@ -555,12 +568,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             required
                             value={formData.birthDate}
                             onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Asal Sekolah / Madrasah *
                           </label>
                           <input
@@ -569,18 +582,18 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: SDIT Al-Madinah Serang"
                             value={formData.previousSchool}
                             onChange={(e) => setFormData({ ...formData, previousSchool: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Jumlah Hafalan Saat Ini (Juz)
                           </label>
                           <select
                             value={formData.currentJuzMemorized}
                             onChange={(e) => setFormData({ ...formData, currentJuzMemorized: Number(e.target.value) })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm bg-white"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           >
                             <option value={0}>Belum ada hafalan khusus (Baru Juz 30 awal)</option>
                             <option value={1}>1 Juz (Juz 30 Mutqin)</option>
@@ -594,7 +607,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                         </div>
 
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Riwayat Alergi / Catatan Kesehatan (Opsional)
                           </label>
                           <input
@@ -602,7 +615,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: Alergi seafood ringan / asma ringan saat udara sangat dingin"
                             value={formData.medicalNotes}
                             onChange={(e) => setFormData({ ...formData, medicalNotes: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
                       </div>
@@ -613,7 +626,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   {currentStep === 3 && (
                     <div className="space-y-4">
                       <div>
-                        <h3 className="font-serif font-bold text-lg sm:text-xl text-stone-900 mb-1">
+                        <h3 className="font-serif font-bold text-lg sm:text-xl text-[#1C1C1C] mb-1">
                           Data Orang Tua / Wali Santri
                         </h3>
                         <p className="text-xs sm:text-sm text-stone-600">
@@ -623,7 +636,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Nama Ayah / Wali *
                           </label>
                           <input
@@ -632,12 +645,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Nama Lengkap Ayah"
                             value={formData.fatherName}
                             onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Pekerjaan Ayah
                           </label>
                           <input
@@ -645,12 +658,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="PNS / Wiraswasta / Karyawan Swasta"
                             value={formData.fatherOccupation}
                             onChange={(e) => setFormData({ ...formData, fatherOccupation: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Nama Ibu Kandung
                           </label>
                           <input
@@ -658,12 +671,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Nama Lengkap Ibu"
                             value={formData.motherName}
                             onChange={(e) => setFormData({ ...formData, motherName: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             No. WhatsApp Aktif (Utama) *
                           </label>
                           <input
@@ -672,15 +685,15 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: 081234567890"
                             value={formData.parentWhatsApp}
                             onChange={(e) => setFormData({ ...formData, parentWhatsApp: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                           {formErrors.parentWhatsApp && (
-                            <span className="text-2xs text-red-600 mt-1 block">{formErrors.parentWhatsApp}</span>
+                            <span className="text-2xs text-rose-600 mt-1 block font-semibold">{formErrors.parentWhatsApp}</span>
                           )}
                         </div>
 
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Alamat Lengkap Tempat Tinggal *
                           </label>
                           <textarea
@@ -689,12 +702,12 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Nama Jalan, RT/RW, Kelurahan/Desa, Kecamatan"
                             value={formData.homeAddress}
                             onChange={(e) => setFormData({ ...formData, homeAddress: e.target.value })}
-                            className="w-full px-3.5 py-2 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Kota / Kabupaten *
                           </label>
                           <input
@@ -703,19 +716,19 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                             placeholder="Contoh: Kota Serang / Kab. Serang"
                             value={formData.city}
                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          <label className="block text-xs font-bold text-[#1C1C1C] mb-1">
                             Provinsi
                           </label>
                           <input
                             type="text"
                             value={formData.province}
                             onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                           />
                         </div>
                       </div>
@@ -726,7 +739,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   {currentStep === 4 && (
                     <div className="space-y-6">
                       <div>
-                        <h3 className="font-serif font-bold text-lg sm:text-xl text-stone-900 mb-1">
+                        <h3 className="font-serif font-bold text-lg sm:text-xl text-[#1C1C1C] mb-1">
                           Verifikasi Berkas & Pernyataan Orang Tua
                         </h3>
                         <p className="text-xs sm:text-sm text-stone-600">
@@ -735,107 +748,110 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                       </div>
 
                       {/* Summary Review */}
-                      <div className="bg-stone-50 p-5 rounded-xl border border-stone-200 text-xs sm:text-sm space-y-2">
-                        <div className="flex justify-between border-b border-stone-200 pb-2">
-                          <span className="text-stone-500">Jenjang Dipilih:</span>
-                          <strong className="text-stone-900">{PROGRAMS.find(p => p.id === formData.level)?.name}</strong>
+                      <div className="bg-[#FFF8E6] p-5 rounded-2xl border border-[#EADBBA] text-xs sm:text-sm space-y-2">
+                        <div className="flex justify-between border-b border-[#EADBBA] pb-2">
+                          <span className="text-stone-600">Jenjang Dipilih:</span>
+                          <strong className="text-[#1C1C1C]">{PROGRAMS.find(p => p.id === formData.level)?.name}</strong>
                         </div>
-                        <div className="flex justify-between border-b border-stone-200 pb-2">
-                          <span className="text-stone-500">Nama Calon Santri:</span>
-                          <strong className="text-stone-900">{formData.fullName} (Laki-laki)</strong>
+                        <div className="flex justify-between border-b border-[#EADBBA] pb-2">
+                          <span className="text-stone-600">Nama Calon Santri:</span>
+                          <strong className="text-[#1C1C1C]">{formData.fullName} (Laki-laki)</strong>
                         </div>
-                        <div className="flex justify-between border-b border-stone-200 pb-2">
-                          <span className="text-stone-500">Tempat, Tanggal Lahir:</span>
-                          <strong className="text-stone-900">{formData.birthPlace}, {formData.birthDate}</strong>
+                        <div className="flex justify-between border-b border-[#EADBBA] pb-2">
+                          <span className="text-stone-600">Tempat, Tanggal Lahir:</span>
+                          <strong className="text-[#1C1C1C]">{formData.birthPlace}, {formData.birthDate}</strong>
                         </div>
-                        <div className="flex justify-between border-b border-stone-200 pb-2">
-                          <span className="text-stone-500">Nama Wali & WhatsApp:</span>
-                          <strong className="text-stone-900">{formData.fatherName} ({formData.parentWhatsApp})</strong>
+                        <div className="flex justify-between border-b border-[#EADBBA] pb-2">
+                          <span className="text-stone-600">Nama Wali & WhatsApp:</span>
+                          <strong className="text-[#1C1C1C]">{formData.fatherName} ({formData.parentWhatsApp})</strong>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-stone-500">Domisili:</span>
-                          <strong className="text-stone-900">{formData.city}, {formData.province}</strong>
+                          <span className="text-stone-600">Domisili:</span>
+                          <strong className="text-[#1C1C1C]">{formData.city}, {formData.province}</strong>
                         </div>
                       </div>
 
-                      {/* Checklist Berkas yang disiapkan */}
+                      {/* Checklist Berkas */}
                       <div className="space-y-2.5 pt-2">
-                        <div className="text-xs font-bold uppercase tracking-wider text-stone-700">
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#1C1C1C]">
                           Dokumen yang siap dibawa saat tes seleksi:
                         </div>
-                        <label className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-700 cursor-pointer">
+                        <label className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-800 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={formData.hasKk}
                             onChange={(e) => setFormData({ ...formData, hasKk: e.target.checked })}
-                            className="rounded text-emerald-700 focus:ring-emerald-700"
+                            className="rounded accent-[#F5B700] w-4 h-4"
                           />
                           <span>Fotokopi Kartu Keluarga (KK) 2 lembar</span>
                         </label>
-                        <label className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-700 cursor-pointer">
+                        <label className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-800 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={formData.hasAkta}
                             onChange={(e) => setFormData({ ...formData, hasAkta: e.target.checked })}
-                            className="rounded text-emerald-700 focus:ring-emerald-700"
+                            className="rounded accent-[#F5B700] w-4 h-4"
                           />
                           <span>Fotokopi Akta Kelahiran Santri 2 lembar</span>
                         </label>
-                        <label className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-700 cursor-pointer">
+                        <label className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-800 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={formData.hasRapor}
                             onChange={(e) => setFormData({ ...formData, hasRapor: e.target.checked })}
-                            className="rounded text-emerald-700 focus:ring-emerald-700"
+                            className="rounded accent-[#F5B700] w-4 h-4"
                           />
                           <span>Fotokopi Rapor 2 semester terakhir yang dilegalisir</span>
                         </label>
                       </div>
 
                       {/* Pernyataan */}
-                      <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-950 leading-relaxed">
+                      <div className="p-4 bg-[#FFFAEE] border-2 border-[#F5B700] rounded-xl text-xs text-[#1C1C1C] leading-relaxed">
                         Dengan mengirimkan formulir ini, saya selaku orang tua/wali menyatakan bahwa seluruh data di atas adalah benar, dan saya bersedia mengikuti tahapan tes seleksi santri putra serta mentaati ketentuan syar'i dan tata tertib Ma'had Imam Syafi'i Serang.
                       </div>
                     </div>
                   )}
 
-                  {/* Navigation Buttons */}
-                  <div className="mt-8 pt-4 border-t border-stone-200 flex items-center justify-between">
+                  {/* Navigation Buttons with shadcn Button */}
+                  <div className="mt-8 pt-4 border-t border-[#EADBBA] flex items-center justify-between">
                     {currentStep > 1 ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
                         onClick={handlePrevStep}
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-100 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                        className="text-xs sm:text-sm font-bold gap-1.5"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Kembali</span>
-                      </button>
+                      </Button>
                     ) : (
                       <div />
                     )}
 
                     {currentStep < 4 ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="default"
                         onClick={handleNextStep}
-                        className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                        className="text-xs sm:text-sm font-bold gap-1.5 shadow-md hover:shadow-lg"
                       >
                         <span>Langkah Selanjutnya</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
+                        <ArrowRight className="w-4 h-4 text-[#1C1C1C]" />
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         type="submit"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs sm:text-sm font-bold shadow-sm transition-colors cursor-pointer"
+                        variant="default"
+                        className="text-xs sm:text-sm font-bold gap-2 shadow-md hover:shadow-lg"
                       >
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4 text-[#1C1C1C]" />
                         <span>Kirim & Terbitkan Bukti Pendaftaran</span>
-                      </button>
+                      </Button>
                     )}
                   </div>
 
                 </form>
-              </div>
+              </Card>
             )}
 
           </div>
@@ -843,9 +859,9 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
 
         {/* TAB 2: CEK STATUS / HASIL SELEKSI */}
         {activeTab === 'status' && (
-          <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-stone-200 p-6 sm:p-8 shadow-xs">
+          <Card className="max-w-3xl mx-auto bg-white border-[#EADBBA] p-6 sm:p-8 shadow-md rounded-2xl">
             <div className="mb-6">
-              <h3 className="font-serif font-bold text-xl sm:text-2xl text-stone-900 mb-2">
+              <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#1C1C1C] mb-2">
                 Pencarian Status Berkas & Hasil Seleksi PSB
               </h3>
               <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
@@ -863,15 +879,16 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearchStatus()}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-300 focus:border-emerald-600 text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#EADBBA] bg-[#FFFDF8] focus:border-[#F5B700] text-sm text-[#1C1C1C]"
                 />
               </div>
-              <button
+              <Button
+                variant="dark"
                 onClick={() => handleSearchStatus()}
-                className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors cursor-pointer shrink-0"
+                className="text-xs sm:text-sm font-bold shrink-0"
               >
                 Cari Data
-              </button>
+              </Button>
             </div>
 
             {/* Quick Demo Pre-fill Chips */}
@@ -882,7 +899,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   setSearchQuery('PSB-MIS-2025-0101');
                   handleSearchStatus('PSB-MIS-2025-0101');
                 }}
-                className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded text-2xs font-mono font-medium"
+                className="px-2.5 py-1 bg-[#FFF8E6] border border-[#EADBBA] hover:bg-[#F7EDD2] text-[#1C1C1C] rounded-lg text-2xs font-mono font-bold cursor-pointer"
               >
                 PSB-MIS-2025-0101 (Lulus Utama)
               </button>
@@ -891,50 +908,50 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   setSearchQuery('PSB-MIS-2025-0142');
                   handleSearchStatus('PSB-MIS-2025-0142');
                 }}
-                className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded text-2xs font-mono font-medium"
+                className="px-2.5 py-1 bg-[#FFF8E6] border border-[#EADBBA] hover:bg-[#F7EDD2] text-[#1C1C1C] rounded-lg text-2xs font-mono font-bold cursor-pointer"
               >
                 PSB-MIS-2025-0142 (Jadwal Tes)
               </button>
             </div>
 
             {searchError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs sm:text-sm text-red-800 flex items-start gap-2 mb-6">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs sm:text-sm text-rose-800 flex items-start gap-2 mb-6 font-medium">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <span>{searchError}</span>
               </div>
             )}
 
             {/* Result Card */}
             {searchResult && (
-              <div className="border border-stone-200 rounded-xl p-6 bg-stone-50 animate-in fade-in">
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-200">
+              <div className="border border-[#EADBBA] rounded-2xl p-6 bg-[#FFFDF8] animate-in fade-in shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#EADBBA]">
                   <div>
-                    <span className="text-xs text-stone-500 font-mono font-semibold">
+                    <span className="text-xs text-stone-500 font-mono font-bold">
                       {searchResult.registrationId}
                     </span>
-                    <h4 className="text-lg font-serif font-bold text-stone-900">
+                    <h4 className="text-lg font-serif font-bold text-[#1C1C1C]">
                       {searchResult.fullName}
                     </h4>
-                    <span className="text-xs text-stone-600">
+                    <span className="text-xs text-stone-600 font-medium">
                       Jenjang: {PROGRAMS.find(p => p.id === searchResult.level)?.name}
                     </span>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-2xs text-stone-500 block">Status Terkini:</span>
-                    <span className={`inline-block px-3 py-1 rounded-md text-xs font-bold mt-1 ${
+                    <span className="text-2xs text-stone-500 block font-semibold">Status Terkini:</span>
+                    <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold mt-1 shadow-2xs ${
                       searchResult.status === 'Lulus Utama'
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        ? 'bg-[#F5B700] text-[#1C1C1C] border border-[#DF9F00]'
                         : searchResult.status === 'Jadwal Tes Seleksi'
-                        ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                        : 'bg-blue-100 text-blue-800 border border-blue-300'
+                        ? 'bg-[#1C1C1C] text-[#FFF8E6] border border-[#333333]'
+                        : 'bg-[#FFF3CC] text-[#1C1C1C] border border-[#FCD566]'
                     }`}>
                       {searchResult.status}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm text-stone-700">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm text-stone-800">
                   <div>
                     <span className="text-stone-500 block text-2xs">Asal Sekolah:</span>
                     <strong>{searchResult.previousSchool} ({searchResult.previousSchoolCity})</strong>
@@ -945,7 +962,7 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                   </div>
                   <div>
                     <span className="text-stone-500 block text-2xs">Jadwal & Waktu Ujian:</span>
-                    <strong className="text-emerald-900">{searchResult.testDate || 'Menunggu penetapan gelombang'}</strong>
+                    <strong className="text-[#1C1C1C]">{searchResult.testDate || 'Menunggu penetapan gelombang'}</strong>
                   </div>
                   <div>
                     <span className="text-stone-500 block text-2xs">Tempat Tes Seleksi:</span>
@@ -954,13 +971,13 @@ export const RegistrationPortal: React.FC<RegistrationPortalProps> = ({
                 </div>
 
                 {searchResult.interviewer && (
-                  <div className="mt-4 pt-3 border-t border-stone-200 text-xs text-stone-600">
-                    Penguji Seleksi Tahfidz: <strong className="text-stone-800">{searchResult.interviewer}</strong>
+                  <div className="mt-4 pt-3 border-t border-[#EADBBA] text-xs text-stone-600">
+                    Penguji Seleksi Tahfidz: <strong className="text-[#1C1C1C]">{searchResult.interviewer}</strong>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </Card>
         )}
 
       </div>

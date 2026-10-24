@@ -107,3 +107,30 @@ export interface FaqItem {
   answer: string;
   category: 'pendaftaran' | 'asrama' | 'akademik' | 'biaya';
 }
+
+export interface TestimonialItem {
+  id: string;
+  name: string;
+  role: string;
+  location: string;
+  santriName: string;
+  santriLevel: string;
+  rating: number;
+  quote: string;
+  achievementBadge: string;
+  highlight: string;
+}
+
+export interface FeatureZigZagItem {
+  id: string;
+  number: string;
+  title: string;
+  tagline: string;
+  description: string;
+  bullets: string[];
+  metricLabel: string;
+  metricValue: string;
+  imageUrl: string;
+  reverse: boolean;
+}
+

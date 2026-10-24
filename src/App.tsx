@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { FeaturesZigZag } from './components/FeaturesZigZag';
 import { ProfileSection } from './components/ProfileSection';
 import { ProgramsSection } from './components/ProgramsSection';
 import { GallerySection } from './components/GallerySection';
@@ -8,11 +9,13 @@ import { DailyScheduleSection } from './components/DailyScheduleSection';
 import { FacilitiesSection } from './components/FacilitiesSection';
 import { TeachersSection } from './components/TeachersSection';
 import { CostSimulation } from './components/CostSimulation';
+import { TestimonialCarousel } from './components/TestimonialCarousel';
 import { RegistrationPortal } from './components/RegistrationPortal';
-import { FaqAndContactSection } from './components/FaqAndContactSection';
+import { FaqSection } from './components/FaqSection';
+import { ClosingCtaSection } from './components/ClosingCtaSection';
 import { Footer } from './components/Footer';
 import { EducationLevel } from './types';
-import { MessageCircle, GraduationCap } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { MAHAD_INFO } from './data/mahadData';
 
 export default function App() {
@@ -38,7 +41,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans selection:bg-emerald-800 selection:text-white">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#FFF8E6] text-[#1C1C1C] flex flex-col font-sans selection:bg-[#F5B700] selection:text-[#1C1C1C]">
       {/* 3-Zone Top Navigation Bar */}
       <Navbar
         onOpenRegistration={() => scrollToRegistration('form')}
@@ -47,11 +50,14 @@ export default function App() {
       />
 
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* 1. HERO SPLIT SCREEN */}
         <Hero
           onOpenRegistration={() => scrollToRegistration('form')}
           onScrollToGallery={scrollToGallery}
         />
+
+        {/* 2. FITUR DENGAN GRID KARTU & ZIG-ZAG */}
+        <FeaturesZigZag />
 
         {/* Profil Lembaga & Visi Misi */}
         <ProfileSection />
@@ -64,17 +70,20 @@ export default function App() {
         {/* Galeri Kegiatan Santri (KHUSUS PRIA / IKHWAN) */}
         <GallerySection />
 
-        {/* Fasilitas Kampus */}
-        <FacilitiesSection />
-
         {/* Jadwal Harian Santri 24 Jam */}
         <DailyScheduleSection />
+
+        {/* Fasilitas Kampus */}
+        <FacilitiesSection />
 
         {/* Dewan Asatidz & Pengasuh */}
         <TeachersSection />
 
         {/* Biaya Pendidikan & Kalkulator Masuk */}
         <CostSimulation />
+
+        {/* 3. TESTIMONI CAROUSEL */}
+        <TestimonialCarousel />
 
         {/* Portal Pendaftaran Santri Baru (PSB Online) & Cek Status */}
         <RegistrationPortal
@@ -83,8 +92,13 @@ export default function App() {
           initialMode={portalMode}
         />
 
-        {/* FAQ & Kontak */}
-        <FaqAndContactSection />
+        {/* 4. FAQ ACCORDION */}
+        <FaqSection />
+
+        {/* 5. CTA PENUTUP */}
+        <ClosingCtaSection
+          onOpenRegistration={() => scrollToRegistration('form')}
+        />
       </main>
 
       {/* Footer */}
@@ -96,11 +110,11 @@ export default function App() {
           href={MAHAD_INFO.whatsappConsultation}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm font-semibold group cursor-pointer"
+          className="flex items-center gap-2.5 px-5 py-3 bg-[#F5B700] hover:bg-[#DF9F00] text-[#1C1C1C] rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 text-xs sm:text-sm font-bold group cursor-pointer border border-[#DF9F00]/50 hover:scale-105 active:scale-95"
           title="Tanya Panitia via WhatsApp"
         >
-          <MessageCircle className="w-4 h-4 fill-current" />
-          <span className="hidden sm:inline">Tanya Panitia PSB</span>
+          <MessageCircle className="w-4 h-4 fill-current text-[#1C1C1C]" />
+          <span className="hidden sm:inline font-bold">Tanya Panitia PSB</span>
         </a>
       </div>
     </div>
